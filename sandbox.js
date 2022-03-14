@@ -14,17 +14,26 @@ const addRecipe = (recipe, id) => {
     list.innerHTML += html;
 }
 
+const deleteRecipe = (id) => {
+    const recipes = document.querySelectorAll('li');
+    recipes.forEach(recipe => {
+        if (recipe.getAttribute('data-id') === id) {
+            recipe.remove();
+        }
+    })
+}
+
 // * Get documents
 
-db.collection('recipes').get().then(snapshot => {
-
-    // * when we have data 
-
-    snapshot.docs.forEach(doc => {
-        addRecipe(doc.data(), doc.id);
+db.collection('recipes').onSnapshot(snapshot => {
+    snapshot.docChanges().forEach(change => {
+        const doc = change.doc;
+        if (change.type === 'added') {
+            addRecipe(doc.data(), doc.id);
+        } else if (change.type === 'removed') {
+            deleteRecipe(doc.id);
+        }
     });
-}).catch(err => {
-    console.log(err);
 });
 
 // * add documents
